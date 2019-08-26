@@ -3,10 +3,12 @@ package com.polizello.server.services;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import com.polizello.server.domain.Categoria;
 import com.polizello.server.repositories.CategoriaRepository;
+import com.polizello.server.services.exceptions.DataIntegrityException;
 import com.polizello.server.services.exceptions.ObjectNotFoundException;
 
 @Service
@@ -29,5 +31,14 @@ public class CategoriaService {
 	public Categoria update(Categoria obj) {
 		find(obj.getId());
 		return repo.save(obj);
+	}
+
+	public void delete(Integer id) {
+		find(id);
+		try {
+			repo.deleteById(id);
+		} catch (DataIntegrityViolationException err) {
+			throw new DataIntegrityException("Não é possível excluir uma categoria que possui produtos.");
+		}
 	}
 }
