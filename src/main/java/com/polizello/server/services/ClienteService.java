@@ -15,11 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 import com.polizello.server.domain.Cidade;
 import com.polizello.server.domain.Cliente;
 import com.polizello.server.domain.Endereco;
+import com.polizello.server.domain.enums.Perfil;
 import com.polizello.server.domain.enums.TipoCliente;
 import com.polizello.server.dto.ClienteDTO;
 import com.polizello.server.dto.ClienteNewDTO;
 import com.polizello.server.repositories.ClienteRepository;
 import com.polizello.server.repositories.EnderecoRepository;
+import com.polizello.server.security.UserSS;
+import com.polizello.server.services.exceptions.AuthorizationException;
 import com.polizello.server.services.exceptions.DataIntegrityException;
 import com.polizello.server.services.exceptions.ObjectNotFoundException;
 
@@ -36,6 +39,9 @@ public class ClienteService {
 	private BCryptPasswordEncoder bCryptPasswordEncoder;
 	
 	public Cliente find(Integer id) {
+		UserSS user = UserService.authenticated();
+		if(user == null || !user.hasRole(Perfil.ADMIN) && !id.equals(user.getId())) throw new AuthorizationException("Acesso negado");
+		
 		Optional<Cliente> obj = repo.findById(id);
 		return obj.orElseThrow(() -> new ObjectNotFoundException(
 				"Objeto não encontrado! Id: " + id + ", Tipo: " + Cliente.class.getName()));
